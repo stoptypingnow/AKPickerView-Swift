@@ -681,36 +681,37 @@ public class AKPickerView: UIView, UICollectionViewDataSource, UICollectionViewD
         self.collectionView.layer.mask?.frame = self.collectionView.bounds
         CATransaction.commit()
     }
-    
-    public func scrollViewWillEndDragging(_ scrollView: UIScrollView,
-                                          withVelocity velocity: CGPoint,
-                                          targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        
-        if collectionViewLayout.scrollDirection == .horizontal {
-            let newCollectionViewCenter = CGPoint(x: targetContentOffset.pointee.x + collectionView.frame.width / 2.0, y: targetContentOffset.pointee.y)
-            
-            guard let indexPath = self.collectionView.indexPathForItem(at: newCollectionViewCenter),
-                let cell = collectionView.cellForItem(at: indexPath) else { return }
-            
-            self.delegate?.pickerView?(self, willScrollToItem: indexPath.item)
-            let cellCenter = cell.center
-            let newOffset = CGPoint(x: cellCenter.x - collectionView.frame.width / 2.0, y: 0.0)
-            targetContentOffset.pointee = newOffset
-        }
-        else {
-            let newCollectionViewCenter = CGPoint(x: targetContentOffset.pointee.x + collectionView.frame.width / 2.0,
-                                                  y: targetContentOffset.pointee.y + collectionView.frame.height / 2.0)
-            
-            guard let indexPath = self.collectionView.indexPathForItem(at: newCollectionViewCenter),
-                let cell = collectionView.cellForItem(at: indexPath) else { return }
-            
-            delegate?.pickerView?(self, willScrollToItem: indexPath.item)
-            let cellCenter = cell.center
-            let newOffset = CGPoint(x: cellCenter.x - collectionView.frame.width / 2.0,
-                                    y: cellCenter.y - collectionView.frame.height / 2.0)
-            targetContentOffset.pointee = newOffset
-        }
-    }
+
+// Removed this to fix bounce back issues when scrolling
+//    public func scrollViewWillEndDragging(_ scrollView: UIScrollView,
+//                                          withVelocity velocity: CGPoint,
+//                                          targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+//
+//        if collectionViewLayout.scrollDirection == .horizontal {
+//            let newCollectionViewCenter = CGPoint(x: targetContentOffset.pointee.x + collectionView.frame.width / 2.0, y: targetContentOffset.pointee.y)
+//
+//            guard let indexPath = self.collectionView.indexPathForItem(at: newCollectionViewCenter),
+//                let cell = collectionView.cellForItem(at: indexPath) else { return }
+//
+//            self.delegate?.pickerView?(self, willScrollToItem: indexPath.item)
+//            let cellCenter = cell.center
+//            let newOffset = CGPoint(x: cellCenter.x - collectionView.frame.width / 2.0, y: 0.0)
+//            targetContentOffset.pointee = newOffset
+//        }
+//        else {
+//            let newCollectionViewCenter = CGPoint(x: targetContentOffset.pointee.x + collectionView.frame.width / 2.0,
+//                                                  y: targetContentOffset.pointee.y + collectionView.frame.height / 2.0)
+//
+//            guard let indexPath = self.collectionView.indexPathForItem(at: newCollectionViewCenter),
+//                let cell = collectionView.cellForItem(at: indexPath) else { return }
+//
+//            delegate?.pickerView?(self, willScrollToItem: indexPath.item)
+//            let cellCenter = cell.center
+//            let newOffset = CGPoint(x: cellCenter.x - collectionView.frame.width / 2.0,
+//                                    y: cellCenter.y - collectionView.frame.height / 2.0)
+//            targetContentOffset.pointee = newOffset
+//        }
+//    }
     
     // MARK: AKCollectionViewLayoutDelegate
     fileprivate func pickerViewStyleForCollectionViewLayout(_ layout: AKCollectionViewLayout) -> AKPickerViewStyle {
