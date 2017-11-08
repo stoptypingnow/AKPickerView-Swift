@@ -26,9 +26,18 @@ public enum AKPickerViewStyle {
  */
 @objc public protocol AKPickerViewDataSource {
     func numberOfItemsInPickerView(_ pickerView: AKPickerView) -> Int
-    @objc optional func pickerView(_ pickerView: AKPickerView, titleForItem item: Int) -> String
-    @objc optional func pickerView(_ pickerView: AKPickerView, imageForItem item: Int) -> UIImage
+    func pickerView(_ pickerView: AKPickerView, titleForItem: Int) -> String?
+    func pickerView(_ pickerView: AKPickerView, imageForItem: Int) -> UIImage?
 }
+
+//extension AKPickerViewDataSource {
+//    func pickerView(_ pickerView: AKPickerView, titleForItem: Int) -> String? {
+//        return nil
+//    }
+//    func pickerView(_ pickerView: AKPickerView, imageForItem: Int) -> UIImage? {
+//        return nil
+//    }
+//}
 
 // MARK: AKPickerViewDelegate
 /**
@@ -36,11 +45,26 @@ public enum AKPickerViewStyle {
  and customize the appearance of labels.
  */
 @objc public protocol AKPickerViewDelegate: UIScrollViewDelegate {
-    @objc optional func pickerView(_ pickerView: AKPickerView, didSelectItem item: Int)
-    @objc optional func pickerView(_ pickerView: AKPickerView, marginForItem item: Int) -> CGSize
-    @objc optional func pickerView(_ pickerView: AKPickerView, configureLabel label: UILabel, forItem item: Int)
-    @objc optional func pickerView(_ pickerView: AKPickerView, willScrollToItem: Int)
+    func pickerView(_ pickerView: AKPickerView, didSelectItem: Int)
+    func pickerView(_ pickerView: AKPickerView, marginForItem: Int) -> CGSize
+    func pickerView(_ pickerView: AKPickerView, configureLabel label: UILabel, forItem item: Int)
+    func pickerView(_ pickerView: AKPickerView, willScrollToItem: Int)
 }
+
+//extension AKPickerViewDelegate {
+//    func pickerView(_ pickerView: AKPickerView, didSelectItem: Int) {
+//        return;
+//    }
+//    func pickerView(_ pickerView: AKPickerView, marginForItem: Int) -> CGSize {
+//        return CGSize(width: 0.0, height: 0.0);
+//    }
+//    func pickerView(_ pickerView: AKPickerView, configureLabel label: UILabel, forItem item: Int) {
+//        return;
+//    }
+//    func pickerView(_ pickerView: AKPickerView, willScrollToItem: Int) {
+//        return;
+//    }
+//}
 
 // MARK: - Private Classes and Protocols
 // MARK: AKCollectionViewLayoutDelegate
@@ -535,7 +559,7 @@ public class AKPickerView: UIView, UICollectionViewDataSource, UICollectionViewD
         self.scrollToItem(item, animated: animated)
         self.selectedItem = item
         if notifySelection {
-            self.delegate?.pickerView?(self, didSelectItem: item)
+            self.delegate?.pickerView(self, didSelectItem: item)
         }
     }
     
@@ -578,7 +602,7 @@ public class AKPickerView: UIView, UICollectionViewDataSource, UICollectionViewD
     
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: NSStringFromClass(AKCollectionViewCell.self), for: indexPath) as! AKCollectionViewCell
-        if let title = self.dataSource?.pickerView?(self, titleForItem: indexPath.item) {
+        if let title = self.dataSource?.pickerView(self, titleForItem: indexPath.item) {
             cell.label.text = title
             cell.label.textColor = self.textColor
             cell.label.highlightedTextColor = self.highlightedTextColor
@@ -593,12 +617,11 @@ public class AKPickerView: UIView, UICollectionViewDataSource, UICollectionViewD
             
             cell.label.bounds = CGRect(origin: CGPoint.zero, size: self.sizeForString(title as NSString))
             if let delegate = self.delegate {
-                delegate.pickerView?(self, configureLabel: cell.label, forItem: indexPath.item)
-                if let margin = delegate.pickerView?(self, marginForItem: indexPath.item) {
-                    cell.label.frame = cell.label.frame.insetBy(dx: -margin.width, dy: -margin.height)
-                }
+                delegate.pickerView(self, configureLabel: cell.label, forItem: indexPath.item)
+                let margin = delegate.pickerView(self, marginForItem: indexPath.item);
+                cell.label.frame = cell.label.frame.insetBy(dx: -margin.width, dy: -margin.height)
             }
-        } else if let image = self.dataSource?.pickerView?(self, imageForItem: indexPath.item) {
+        } else if let image = self.dataSource?.pickerView(self, imageForItem: indexPath.item) {
             cell.imageView.image = image
         }
         cell.isSelected = (indexPath.item == self.selectedItem)
@@ -614,12 +637,13 @@ public class AKPickerView: UIView, UICollectionViewDataSource, UICollectionViewD
             maxHeight = maxHeight - flowLayout.sectionInset.top - flowLayout.sectionInset.bottom
             
             var size = CGSize(width: self.interitemSpacing, height: collectionView.bounds.size.height)
-            if let title = self.dataSource?.pickerView?(self, titleForItem: indexPath.item) {
+            if let title = self.dataSource?.pickerView(self, titleForItem: indexPath.item) {
                 size.width += self.sizeForString(title as NSString).width
-                if let margin = self.delegate?.pickerView?(self, marginForItem: indexPath.item) {
+                 if let delegate = self.delegate {
+                    let margin = delegate.pickerView(self, marginForItem: indexPath.item)
                     size.width += margin.width * 2
                 }
-            } else if let image = self.dataSource?.pickerView?(self, imageForItem: indexPath.item) {
+            } else if let image = self.dataSource?.pickerView(self, imageForItem: indexPath.item) {
                 size.width += image.size.width
             }
             return size
@@ -630,12 +654,13 @@ public class AKPickerView: UIView, UICollectionViewDataSource, UICollectionViewD
             maxWidth = maxWidth - flowLayout.sectionInset.left - flowLayout.sectionInset.right
             
             var size = CGSize(width: maxWidth, height: self.interitemSpacing)
-            if let title = self.dataSource?.pickerView?(self, titleForItem: indexPath.item) {
+            if let title = self.dataSource?.pickerView(self, titleForItem: indexPath.item) {
                 size.height += self.sizeForString(title as NSString).height
-                if let margin = self.delegate?.pickerView?(self, marginForItem: indexPath.item) {
+                if let delegate = self.delegate {
+                    let margin = delegate.pickerView(self, marginForItem: indexPath.item)
                     size.height += margin.height * 2
                 }
-            } else if let image = self.dataSource?.pickerView?(self, imageForItem: indexPath.item) {
+            } else if let image = self.dataSource?.pickerView(self, imageForItem: indexPath.item) {
                 size.height += image.size.height
             }
             return size
@@ -672,7 +697,7 @@ public class AKPickerView: UIView, UICollectionViewDataSource, UICollectionViewD
     // MARK: UICollectionViewDelegate
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         self.selectItem(indexPath.item, animated: true)
-        delegate?.pickerView?(self, willScrollToItem: indexPath.item)
+        delegate?.pickerView(self, willScrollToItem: indexPath.item)
     }
     
     // MARK: UIScrollViewDelegate
